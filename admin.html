@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Booking Ruangan</title>
+</head>
+<body class="bg-light">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 px-3 shadow-sm">
+        <div class="container-fluid">
+            <span class="navbar-brand text-white fw-bold">Booking<span class="text-info">Admin</span></span>
+            <button class="btn btn-outline-light rounded-pill px-4" id="logoutBtn">Log Out</button>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        
+        <div class="row mb-5">
+            <div class="col-12">
+                <h3 class="header-title">Admin Dashboard</h3>
+                <p class="text-muted">Kelola Ruangan dan Persetujuan Peminjaman</p>
+                <div id="notificationArea"></div>
+            </div>
+        </div>
+
+        <ul class="nav nav-pills mb-4" id="adminTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill px-4 me-2" id="nav-konfirmasi-tab" data-bs-toggle="tab" data-bs-target="#nav-konfirmasi" type="button" role="tab">Konfirmasi Pengajuan</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-4 me-2" id="nav-crud-tab" data-bs-toggle="tab" data-bs-target="#nav-crud" type="button" role="tab">CRUD Ruangan</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-4" id="nav-riwayat-tab" data-bs-toggle="tab" data-bs-target="#nav-riwayat" type="button" role="tab">Riwayat Keseluruhan</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="nav-tabContent">
+            
+            <!-- TAB: Konfirmasi Peminjaman -->
+            <div class="tab-pane fade show active" id="nav-konfirmasi" role="tabpanel">
+                <div class="glass-card p-4">
+                    <h5 class="mb-3 border-bottom pb-2">Menunggu Persetujuan</h5>
+                    <div id="konfirmasiList">
+                        <!-- JS generated list of pending bookings -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: CRUD Ruangan -->
+            <div class="tab-pane fade" id="nav-crud" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="glass-card p-4">
+                            <h5 id="formTitle">Tambah Ruangan</h5>
+                            <form id="roomForm">
+                                <input type="hidden" id="roomId">
+                                <div class="mb-2">
+                                    <label class="form-label small">Nama Ruangan</label>
+                                    <input type="text" id="roomName" class="form-control" required>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small">Kapasitas</label>
+                                    <input type="number" id="roomCapacity" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small">Status</label>
+                                    <select id="roomStatus" class="form-select">
+                                        <option value="available">Tersedia</option>
+                                        <option value="maintenance">Maintenance</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary-custom w-100 rounded-pill">Simpan Data</button>
+                                <button type="button" class="btn btn-light w-100 mt-2 d-none" id="cancelEditRoom">Batal Edit</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="glass-card p-4 table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Nama Ruangan</th>
+                                        <th>Kapasitas</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="roomTableBody">
+                                    <!-- JS generated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Riwayat -->
+            <div class="tab-pane fade" id="nav-riwayat" role="tabpanel">
+                <div class="glass-card p-4 table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Tanggal Transaksi</th>
+                                <th>User</th>
+                                <th>Ruangan</th>
+                                <th>Waktu Pemakaian</th>
+                                <th>Status Akhir</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminHistoryTableBody">
+                            <!-- JS generated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div> <!-- end tab-content -->
+    </div>
+
+    <script type="module" src="/main.js"></script>
+    <script type="module" src="/admin.js"></script>
+</body>
+</html>

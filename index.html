@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Ruangan - Login Modern</title>
+</head>
+<body class="login-body">
+    <div class="split-layout">
+        <!-- Panel Gambar / Branding -->
+        <div class="split-left">
+            <div class="left-content">
+                <h1 class="brand-huge">Space<span class="text-primary-accent">Flow</span></h1>
+                <p class="brand-tagline mt-2">Ruang kolaborasi tak terbatas untuk ide-ide brilian Anda. Pesan sekarang hanya dengan beberapa klik.</p>
+            </div>
+        </div>
+
+        <!-- Panel Form Login -->
+        <div class="split-right">
+            <div class="login-container fade-in">
+                <div class="mb-5">
+                    <h2 class="auth-title">Selamat Datang ✨</h2>
+                    <p class="text-muted mt-2">Masuk ke akun Anda untuk mulai memesan ruangan</p>
+                </div>
+                
+                <form id="loginForm">
+                    <div id="loginError" class="alert custom-alert-danger d-none py-3" role="alert">
+                        Login Tidak Berhasil! Periksa username/password Anda.
+                    </div>
+                    
+                    <div class="form-floating mb-4 form-floating-custom">
+                        <input type="text" class="form-control" id="username" required placeholder="User / Admin">
+                        <label for="username">Username</label>
+                    </div>
+                    
+                    <div class="form-floating mb-5 form-floating-custom">
+                        <input type="password" class="form-control" id="password" required placeholder="*****">
+                        <label for="password">Password</label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary-custom w-100 rounded-pill shadow-sm">Masuk ke Dashboard</button>
+                    
+                    <div class="text-center mt-5 small text-muted">
+                        <p class="mb-1">Masuk sebagai <strong class="text-dark">admin / admin</strong> untuk panel Admin.</p>
+                        <p>Atau ketik nama bebas untuk masuk sebagai Pengguna biasa.</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/main.js"></script>
+    <script type="module">
+        import { login, getCurrentUser } from '/auth.js';
+        
+        const user = getCurrentUser();
+        if (user) {
+            window.location.href = user.role === 'admin' ? '/admin.html' : '/user.html';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userVal = document.getElementById('username').value;
+            const passVal = document.getElementById('password').value;
+            
+            const result = login(userVal, passVal);
+            if(result.success) {
+                window.location.href = result.role === 'admin' ? '/admin.html' : '/user.html';
+            } else {
+                const errDiv = document.getElementById('loginError');
+                errDiv.classList.remove('d-none');
+            }
+        });
+    </script>
+</body>
+</html>

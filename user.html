@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard User - Booking Ruangan</title>
+</head>
+<body class="bg-light">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light glass-card mb-4 mt-2 mx-3">
+        <div class="container-fluid">
+            <span class="navbar-brand header-title">Booking<span class="text-dark">User</span></span>
+            <div class="d-flex align-items-center">
+                <span class="me-3 text-muted" id="userNameDisplay">Halo!</span>
+                <button class="btn btn-outline-danger rounded-pill px-4" id="logoutBtn">Log Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        
+        <!-- View: Daftar Ruangan -->
+        <div id="viewRooms" class="fade-in">
+            <h3 class="mb-4 text-center">Pilih Ruangan Tersedia</h3>
+            <div class="row g-4" id="roomListContainer">
+                <!-- Dijenerasi via JS -->
+            </div>
+        </div>
+
+        <!-- View: Formulir Peminjaman -->
+        <div id="viewForm" class="fade-in d-none">
+            <button class="btn btn-secondary mb-3 rounded-pill" id="btnBackToRooms">&larr; Kembali ke Daftar Ruangan</button>
+            <div class="glass-card p-4 mx-auto" style="max-width: 600px;">
+                <h4 class="mb-4 header-title text-center">Formulir Peminjaman</h4>
+                <div class="alert alert-info py-2"><span id="selectedRoomDisplay" class="fw-bold"></span></div>
+                
+                <form id="bookingForm">
+                    <input type="hidden" id="formRoomId">
+                    <input type="hidden" id="formRoomName">
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal Peminjaman</label>
+                        <input type="date" class="form-control form-control-lg" id="bookingDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Durasi (Jam)</label>
+                        <input type="number" min="1" max="24" class="form-control form-control-lg" id="bookingDuration" placeholder="Contoh: 2" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Keperluan</label>
+                        <textarea class="form-control" id="bookingPurpose" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary-custom w-100 btn-lg rounded-pill">Ajukan Peminjaman</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- View: Status & Riwayat -->
+        <div id="viewHistory" class="fade-in mt-5">
+            <hr>
+            <h4 class="mb-3">Status Pengajuan & Riwayat Peminjaman</h4>
+            <div id="noHistoryMsg" class="alert alert-secondary d-none">Belum ada pengajuan.</div>
+            <div class="table-responsive glass-card p-2 rounded">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tanggal Diajukan</th>
+                            <th>Ruangan</th>
+                            <th>Waktu Pemakaian</th>
+                            <th>Status (Menunggu/Disetujui/Ditolak)</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Dijenerasi JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+
+    <script type="module" src="/main.js"></script>
+    <script type="module" src="/user.js"></script>
+</body>
+</html>
