@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ============================================================
+# KEAMANAN — JANGAN PERNAH COMMIT FILE INI!
+# ============================================================
+# Environment variables (berisi secret JWT dan config Supabase)
+backend/.env
+.env

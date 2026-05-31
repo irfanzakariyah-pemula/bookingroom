@@ -29,10 +29,13 @@
                 <button class="nav-link active rounded-pill px-4 me-2" id="nav-konfirmasi-tab" data-bs-toggle="tab" data-bs-target="#nav-konfirmasi" type="button" role="tab">Konfirmasi Pengajuan</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link rounded-pill px-4 me-2" id="nav-crud-tab" data-bs-toggle="tab" data-bs-target="#nav-crud" type="button" role="tab">CRUD Ruangan</button>
+                <button class="nav-link rounded-pill px-4 me-2" id="nav-crud-tab" data-bs-toggle="tab" data-bs-target="#nav-crud" type="button" role="tab">Kelola Ruangan</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link rounded-pill px-4" id="nav-riwayat-tab" data-bs-toggle="tab" data-bs-target="#nav-riwayat" type="button" role="tab">Riwayat Keseluruhan</button>
+                <button class="nav-link rounded-pill px-4 me-2" id="nav-riwayat-tab" data-bs-toggle="tab" data-bs-target="#nav-riwayat" type="button" role="tab">Riwayat Keseluruhan</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-4" id="nav-user-tab" data-bs-toggle="tab" data-bs-target="#nav-user" type="button" role="tab">Kelola User</button>
             </li>
         </ul>
 
@@ -48,7 +51,7 @@
                 </div>
             </div>
 
-            <!-- TAB: CRUD Ruangan -->
+            <!-- TAB: Kelola Ruangan -->
             <div class="tab-pane fade" id="nav-crud" role="tabpanel">
                 <div class="row">
                     <div class="col-md-4 mb-4">
@@ -63,6 +66,13 @@
                                 <div class="mb-2">
                                     <label class="form-label small">Kapasitas</label>
                                     <input type="number" id="roomCapacity" class="form-control" required>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small">Foto Ruangan</label>
+                                    <input type="file" id="roomPhoto" accept="image/*" class="form-control">
+                                    <div class="mt-2 text-center d-none" id="photoPreviewContainer">
+                                        <img id="photoPreview" src="" alt="Preview Foto" class="img-fluid rounded shadow-sm" style="max-height: 150px; object-fit: cover;" referrerpolicy="no-referrer">
+                                    </div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small">Status</label>
@@ -84,6 +94,7 @@
                                         <th>Nama Ruangan</th>
                                         <th>Kapasitas</th>
                                         <th>Status</th>
+                                        <th>Foto</th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
@@ -113,6 +124,61 @@
                             <!-- JS generated -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- TAB: Kelola User -->
+            <div class="tab-pane fade" id="nav-user" role="tabpanel">
+                <div class="row">
+                    <!-- Form Tambah User -->
+                    <div class="col-md-5 mb-4">
+                        <div class="glass-card p-4">
+                            <h5 class="mb-3">Tambah Akun User Baru</h5>
+                            <div id="registerAlert" class="d-none mb-3"></div>
+                            <form id="registerForm">
+                                <div class="mb-2">
+                                    <label class="form-label small">Nama Lengkap</label>
+                                    <input type="text" id="regNama" class="form-control" placeholder="Budi Santoso" required>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small">Email</label>
+                                    <input type="email" id="regEmail" class="form-control" placeholder="budi@kampus.ac.id" required>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small">NIM / NIP</label>
+                                    <input type="text" id="regNim" class="form-control" placeholder="2021xxxx" required>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small">Username</label>
+                                    <input type="text" id="regUsername" class="form-control" placeholder="budi123" required>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small">Password</label>
+                                    <input type="password" id="regPassword" class="form-control" placeholder="Min. 6 karakter" required minlength="6">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small">Role</label>
+                                    <select id="regRole" class="form-select">
+                                        <option value="user">User (Peminjam)</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary-custom w-100 rounded-pill" id="registerBtn">Buat Akun</button>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Info -->
+                    <div class="col-md-7">
+                        <div class="glass-card p-4">
+                            <h5 class="mb-3">Panduan</h5>
+                            <ul class="text-muted">
+                                <li class="mb-2">Akun yang dibuat di sini bisa langsung digunakan untuk login.</li>
+                                <li class="mb-2"><strong>Role User</strong>: Hanya bisa mengajukan peminjaman ruangan.</li>
+                                <li class="mb-2"><strong>Role Admin</strong>: Dapat mengelola ruangan dan menyetujui/menolak peminjaman.</li>
+                                <li class="mb-2">Gunakan <strong>NIM</strong> untuk mahasiswa dan <strong>NIP</strong> untuk dosen/staf.</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
 

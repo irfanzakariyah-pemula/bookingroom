@@ -1,19 +1,64 @@
 // auth.js
-import { initStorage } from './state.js';
+const API_URL = 'http://localhost:5000/api';
 
-initStorage();
+export async function login(username, password) {
+    try {
+        const res = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
 
-export function login(username, password) {
-    // Mock login logic
-    if (username === 'admin' && password === 'admin') {
-        localStorage.setItem('currentUser', JSON.stringify({ role: 'admin', username: 'admin' }));
-        return { success: true, role: 'admin' };
-    } else if (username && password) {
-        // Any other user is a regular user for mock purposes
-        localStorage.setItem('currentUser', JSON.stringify({ role: 'user', username }));
-        return { success: true, role: 'user' };
+        const data = await res.json();
+
+        if (!res.ok) {
+            return { success: false, message: data.message || 'Login gagal' };
+        }
+
+        // Simpan token, uid, role, nama, dan username ke localStorage
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('currentUser', JSON.stringify({
+            uid: data.uid,
+            role: data.role,
+            username: data.username,
+            nama: data.nama
+        }));
+
+        return { success: true, uid: data.uid, role: data.role, username: data.username, nama: data.nama };
+    } catch (err) {
+        console.error('Login error:', err);
+        return { success: false, message: 'Tidak dapat terhubung ke server' };
     }
-    return { success: false, message: 'Invalid credentials' };
+}
+
+/**
+ * Mendaftarkan user baru. Hanya bisa dipanggil oleh admin (butuh token JWT admin).
+ * @param {object} userData - { nama, email, nim, username, password, role }
+ * @returns {Promise<{success: boolean, message?: string}>}
+ */
+export async function register({ nama, email, nim, username, password, role = 'user' }) {
+    const token = localStorage.getItem('token');
+    try {
+        const res = await fetch(`${API_URL}/auth/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ nama, email, nim, username, password, role })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            return { success: false, message: data.message || 'Registrasi gagal' };
+        }
+
+        return { success: true, message: data.message };
+    } catch (err) {
+        console.error('Register error:', err);
+        return { success: false, message: 'Tidak dapat terhubung ke server' };
+    }
 }
 
 export function getCurrentUser() {
@@ -22,6 +67,7 @@ export function getCurrentUser() {
 
 export function logout() {
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('token');
     window.location.href = '/index.html';
 }
 

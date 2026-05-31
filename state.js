@@ -2,9 +2,9 @@
 // Mock DB using localStorage
 
 const INITIAL_ROOMS = [
-    { id: '1', name: 'Ruang Rapat Alpha', capacity: 10, target: 'User', status: 'available' },
-    { id: '2', name: 'Ruang Seminar Beta', capacity: 50, target: 'Admin', status: 'available' },
-    { id: '3', name: 'Ruang Eksekutif Gamma', capacity: 5, target: 'Guest', status: 'maintenance' }
+    { id: '1', name: 'Ruang Rapat Alpha', capacity: 10, target: 'User', status: 'available', photo: '/images/room_alpha.png' },
+    { id: '2', name: 'Ruang Seminar Beta', capacity: 50, target: 'Admin', status: 'available', photo: '/images/room_beta.png' },
+    { id: '3', name: 'Ruang Eksekutif Gamma', capacity: 5, target: 'Guest', status: 'maintenance', photo: '/images/room_gamma.png' }
 ];
 
 export function initStorage() {
@@ -24,7 +24,7 @@ export function saveRoom(room) {
     const rooms = getRooms();
     if (room.id) {
         const index = rooms.findIndex(r => r.id === room.id);
-        if(index > -1) rooms[index] = room;
+        if (index > -1) rooms[index] = room;
         else rooms.push(room);
     } else {
         room.id = Date.now().toString();
@@ -59,7 +59,7 @@ export function submitBooking(bookingData) {
 export function updateBookingStatus(id, newStatus) {
     const bookings = getBookings();
     const index = bookings.findIndex(b => b.id === id);
-    if(index > -1) {
+    if (index > -1) {
         bookings[index].status = newStatus;
         localStorage.setItem('bookings', JSON.stringify(bookings));
     }
