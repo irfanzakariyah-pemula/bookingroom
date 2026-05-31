@@ -58,12 +58,13 @@
 
         const user = getCurrentUser();
         if (user) {
-            window.location.href = user.role === 'admin' ? '/admin.html' : '/user.html';
+            window.location.href = user.role === 'admin' ? 'admin.html' : 'user.html';
         }
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const userVal = document.getElementById('username').value;
+
             const passVal = document.getElementById('password').value;
             const submitBtn = e.target.querySelector('[type="submit"]');
             const errDiv = document.getElementById('loginError');
@@ -74,7 +75,7 @@
 
             const result = await login(userVal, passVal);
             if (result.success) {
-                window.location.href = result.role === 'admin' ? '/admin.html' : '/user.html';
+                window.location.href = result.role === 'admin' ? 'admin.html' : 'user.html';
             } else {
                 errDiv.textContent = result.message || 'Login Tidak Berhasil! Periksa username/password Anda.';
                 errDiv.classList.remove('d-none');

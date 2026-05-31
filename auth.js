@@ -72,18 +72,18 @@ export function getCurrentUser() {
 export function logout() {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('token');
-    window.location.href = '/index.html';
+    window.location.href = 'index.html';
 }
 
 export function checkAuth(requiredRole) {
     const user = getCurrentUser();
     if (!user) {
-        window.location.href = '/index.html';
+        window.location.href = 'index.html';
         return;
     }
     if (requiredRole && user.role !== requiredRole) {
-        if (user.role === 'admin') window.location.href = '/admin.html';
-        else window.location.href = '/user.html';
+        if (user.role === 'admin') window.location.href = 'admin.html';
+        else window.location.href = 'user.html';
     }
     return user;
 }
