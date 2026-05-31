@@ -1,5 +1,8 @@
 // auth.js
-const API_URL = 'http://localhost:5000/api';
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : 'https://bookingroom-api.onrender.com/api'; // Ganti URL ini dengan URL backend asli Anda setelah dideploy di Render/Railway
+
 
 export async function login(username, password) {
     try {
