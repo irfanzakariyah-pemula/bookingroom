@@ -15,6 +15,18 @@ const addBooking = async (req, res) => {
             return res.status(400).json({ message: 'roomId, date, duration, dan purpose wajib diisi.' });
         }
 
+        // 1. Validasi format tanggal (YYYY-MM-DD)
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(date) || isNaN(Date.parse(date))) {
+            return res.status(400).json({ message: 'Format tanggal tidak valid. Gunakan format YYYY-MM-DD.' });
+        }
+
+        // 2. Validasi durasi (wajib berupa bilangan bulat positif > 0)
+        const parsedDuration = Number(duration);
+        if (isNaN(parsedDuration) || parsedDuration <= 0 || !Number.isInteger(parsedDuration)) {
+            return res.status(400).json({ message: 'Durasi peminjaman harus berupa bilangan bulat positif yang valid.' });
+        }
+
         // ── Validasi bentrok jadwal ──────────────────────────────────────────
         // Cek apakah ruangan sudah ada booking pada tanggal yang sama
         // dengan status 'approved' atau 'pending'
@@ -40,7 +52,7 @@ const addBooking = async (req, res) => {
             room_id: roomId,
             room_name: roomName,
             date,
-            duration: Number(duration),
+            duration: parsedDuration,
             purpose,
             status: 'pending',
             timestamp: new Date().toISOString(),
@@ -57,7 +69,7 @@ const addBooking = async (req, res) => {
         res.status(201).json({ message: 'Pengajuan peminjaman berhasil dikirim.', id: inserted.id });
     } catch (err) {
         console.error('[addBooking]', err);
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
     }
 };
 
@@ -74,7 +86,7 @@ const getAllBookings = async (req, res) => {
         res.json(bookings || []);
     } catch (err) {
         console.error('[getAllBookings]', err);
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
     }
 };
 
@@ -95,7 +107,7 @@ const getUserBookings = async (req, res) => {
         res.json(bookings || []);
     } catch (err) {
         console.error('[getUserBookings]', err);
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
     }
 };
 
@@ -133,7 +145,7 @@ const updateBookingStatus = async (req, res) => {
         res.json({ message: `Status booking berhasil diubah menjadi "${status}".` });
     } catch (err) {
         console.error('[updateBookingStatus]', err);
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
     }
 };
 

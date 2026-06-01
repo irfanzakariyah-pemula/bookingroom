@@ -57,7 +57,7 @@ const getRooms = async (req, res) => {
         res.json(rooms || []);
     } catch (err) {
         console.error('[getRooms]', err);
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
     }
 };
 
@@ -68,6 +68,12 @@ const addRoom = async (req, res) => {
 
         if (!name || !capacity) {
             return res.status(400).json({ message: 'Nama dan kapasitas ruangan wajib diisi.' });
+        }
+
+        // Validasi kapasitas (wajib berupa bilangan bulat positif > 0)
+        const parsedCapacity = Number(capacity);
+        if (isNaN(parsedCapacity) || parsedCapacity <= 0 || !Number.isInteger(parsedCapacity)) {
+            return res.status(400).json({ message: 'Kapasitas ruangan harus berupa bilangan bulat positif yang valid.' });
         }
 
         // Upload foto jika ada — jika gagal, lanjutkan tanpa foto
@@ -83,7 +89,7 @@ const addRoom = async (req, res) => {
 
         const roomData = {
             name,
-            capacity: Number(capacity),
+            capacity: parsedCapacity,
             status: status || 'available',
             photo: photoUrl,
             created_at: new Date().toISOString(),
@@ -106,7 +112,7 @@ const addRoom = async (req, res) => {
         res.status(201).json({ message, id: inserted.id });
     } catch (err) {
         console.error('[addRoom]', err);
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
     }
 };
 
@@ -127,9 +133,18 @@ const updateRoom = async (req, res) => {
             return res.status(404).json({ message: 'Ruangan tidak ditemukan.' });
         }
 
+        let parsedCapacity = existing.capacity;
+        if (capacity !== undefined) {
+            // Validasi kapasitas baru jika ada
+            parsedCapacity = Number(capacity);
+            if (isNaN(parsedCapacity) || parsedCapacity <= 0 || !Number.isInteger(parsedCapacity)) {
+                return res.status(400).json({ message: 'Kapasitas ruangan harus berupa bilangan bulat positif yang valid.' });
+            }
+        }
+
         const updateData = {
             name: name || existing.name,
-            capacity: capacity ? Number(capacity) : existing.capacity,
+            capacity: parsedCapacity,
             status: status || existing.status,
             updated_at: new Date().toISOString(),
         };
@@ -157,7 +172,7 @@ const updateRoom = async (req, res) => {
         res.json({ message: 'Ruangan berhasil diperbarui.' });
     } catch (err) {
         console.error('[updateRoom]', err);
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
     }
 };
 
@@ -192,7 +207,7 @@ const deleteRoom = async (req, res) => {
         res.json({ message: 'Ruangan berhasil dihapus.' });
     } catch (err) {
         console.error('[deleteRoom]', err);
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
     }
 };
 

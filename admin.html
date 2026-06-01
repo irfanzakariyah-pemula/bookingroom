@@ -65,7 +65,7 @@
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label small">Kapasitas</label>
-                                    <input type="number" id="roomCapacity" class="form-control" required>
+                                    <input type="number" id="roomCapacity" class="form-control" required min="1">
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label small">Foto Ruangan</label>
@@ -154,7 +154,7 @@
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label small">Password</label>
-                                    <input type="password" id="regPassword" class="form-control" placeholder="Min. 6 karakter" required minlength="6">
+                                    <input type="password" id="regPassword" class="form-control" placeholder="Min. 8 karakter (huruf & angka)" required minlength="8" pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$" title="Password harus minimal 8 karakter dan mengandung kombinasi huruf dan angka.">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small">Role</label>

@@ -75,8 +75,23 @@ const register = async (req, res) => {
         return res.status(400).json({ message: 'Semua field (username, password, nama, email, nim/nip) wajib diisi.' });
     }
 
+    // 1. Validasi format email menggunakan standard Regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: 'Format email tidak valid.' });
+    }
+
+    // 2. Validasi kekuatan password (minimal 8 karakter, wajib ada huruf dan angka)
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    if (!passwordRegex.test(password)) {
+        return res.status(400).json({ 
+            message: 'Password kurang kuat. Wajib minimal 8 karakter dan mengandung kombinasi huruf dan angka.' 
+        });
+    }
+
     const validRoles = ['admin', 'user'];
     const userRole = validRoles.includes(role) ? role : 'user';
+
 
     try {
         // Cek apakah username sudah digunakan
