@@ -48,7 +48,7 @@ const login = async (req, res) => {
 
         // Buat JWT token
         const token = jwt.sign(
-            { uid: userData.id, username: userData.username, role: userData.role, nama: userData.nama || userData.username },
+            { uid: userData.id, username: userData.username, role: userData.role, nama: userData.nama || userData.username, prodi: userData.prodi },
             process.env.JWT_SECRET,
             { expiresIn: '1d' }
         );
@@ -59,7 +59,8 @@ const login = async (req, res) => {
             uid: userData.id,
             role: userData.role,
             username: userData.username,
-            nama: userData.nama || userData.username
+            nama: userData.nama || userData.username,
+            prodi: userData.prodi || 'Teknik Informatika'
         });
     } catch (err) {
         console.error('[login]', err);
@@ -69,7 +70,7 @@ const login = async (req, res) => {
 
 // ─── POST /api/auth/register (admin only) ────────────────────────────────────
 const register = async (req, res) => {
-    const { username, password, role, nama, email, nim } = req.body;
+    const { username, password, role, nama, email, nim, prodi } = req.body;
 
     if (!username || !password || !nama || !email || !nim) {
         return res.status(400).json({ message: 'Semua field (username, password, nama, email, nim/nip) wajib diisi.' });
@@ -117,6 +118,7 @@ const register = async (req, res) => {
             nama,
             email,
             nim,
+            prodi: prodi || 'Teknik Informatika', // default if not provided
             created_at: new Date().toISOString(),
         };
 

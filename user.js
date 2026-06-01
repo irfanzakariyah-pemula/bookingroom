@@ -1,11 +1,9 @@
 // user.js
-import { checkAuth } from './auth.js';
+import { checkAuth, getCurrentUser } from './auth.js';
 
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5000/api'
     : 'https://bookingroom-r3nz.onrender.com/api';
-
-
 
 const currentUser = checkAuth('user');
 
@@ -20,7 +18,6 @@ function escapeHTML(str) {
         .replace(/'/g, '&#039;');
 }
 
-// Helper: ambil header Authorization dengan JWT token
 function getAuthHeaders() {
     const token = localStorage.getItem('token');
     return {
@@ -31,12 +28,11 @@ function getAuthHeaders() {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!currentUser) return;
-    document.getElementById('userNameDisplay').textContent = `Halo, ${currentUser.username}!`;
+    document.getElementById('userNameDisplay').textContent = `Halo, ${currentUser.nama || currentUser.username}!`;
 
     renderRooms();
     renderHistory();
 
-    // Listeners
     document.getElementById('btnBackToRooms').addEventListener('click', showRoomList);
     document.getElementById('bookingForm').addEventListener('submit', handleBookingSubmit);
 });
@@ -59,15 +55,13 @@ async function renderRooms() {
             const col = document.createElement('div');
             col.className = 'col-md-4';
 
-            // Bangun card secara aman tanpa injeksi data langsung ke innerHTML
             const card = document.createElement('div');
-            card.className = 'card room-card h-100 p-3 bg-white rounded-3 shadow-sm border-0 border-top border-4 border-primary';
+            card.className = 'card room-card h-100 p-3 bg-white rounded-3 shadow-sm border-0';
 
             if (room.photo) {
                 const img = document.createElement('img');
                 img.src = formatImageUrl(room.photo);
                 img.className = 'card-img-top mb-3 rounded';
-                // alt pakai textContent-style (setAttribute aman untuk atribut non-event)
                 img.alt = room.name;
                 img.style.cssText = 'height:150px;object-fit:cover;';
                 img.setAttribute('referrerpolicy', 'no-referrer');
@@ -79,13 +73,12 @@ async function renderRooms() {
 
             const title = document.createElement('h5');
             title.className = 'card-title fw-bold';
-            title.textContent = room.name; // textContent → aman dari XSS
+            title.textContent = room.name;
 
             const cap = document.createElement('p');
             cap.className = 'card-text text-muted small mb-4';
             cap.textContent = `Kapasitas: ${Number(room.capacity)} Orang`;
 
-            // Tombol pakai data-* bukan onclick string
             const btn = document.createElement('button');
             btn.className = 'btn btn-primary-custom rounded-pill mt-auto';
             btn.textContent = 'Pilih Ruangan';
@@ -106,18 +99,17 @@ async function renderRooms() {
     }
 }
 
-// Tidak lagi di-expose ke window — dipanggil melalui event listener
 function openBookingForm(id, name) {
     document.getElementById('viewRooms').classList.add('d-none');
     document.getElementById('viewForm').classList.remove('d-none');
 
     document.getElementById('formRoomId').value = id;
     document.getElementById('formRoomName').value = name;
-    // textContent aman — tidak dirender sebagai HTML
     document.getElementById('selectedRoomDisplay').textContent = `Mengajukan Peminjaman: ${name}`;
 
     document.getElementById('bookingDate').value = '';
     document.getElementById('bookingDuration').value = '';
+    document.getElementById('bookingDosenPJ').value = '';
     document.getElementById('bookingPurpose').value = '';
 }
 
@@ -134,6 +126,7 @@ async function handleBookingSubmit(e) {
         roomName: document.getElementById('formRoomName').value,
         date:     document.getElementById('bookingDate').value,
         duration: document.getElementById('bookingDuration').value,
+        dosen_pj: document.getElementById('bookingDosenPJ').value.trim(),
         purpose:  document.getElementById('bookingPurpose').value
     };
 
@@ -178,7 +171,6 @@ async function renderHistory() {
 
         msg.classList.add('d-none');
 
-        // Status dari backend: 'pending', 'approved', 'rejected'
         history.forEach(b => {
             let badgeColor = 'bg-warning text-dark';
             if (b.status === 'approved') badgeColor = 'bg-success';
@@ -189,16 +181,19 @@ async function renderHistory() {
 
             const tr = document.createElement('tr');
 
-            // Semua sel dibangun dengan textContent — aman dari XSS
             const tdDate = document.createElement('td');
             tdDate.textContent = new Date(b.timestamp || b.created_at).toLocaleDateString('id-ID');
 
             const tdRoom = document.createElement('td');
             tdRoom.className = 'fw-bold';
-            tdRoom.textContent = roomName; // data dari API, escape via textContent
+            tdRoom.textContent = roomName;
 
             const tdSchedule = document.createElement('td');
             tdSchedule.textContent = `${b.date} (${b.duration || '-'} Jam)`;
+
+            const tdDosenPJ = document.createElement('td');
+            tdDosenPJ.className = 'small';
+            tdDosenPJ.textContent = b.dosen_pj || '-';
 
             const tdStatus = document.createElement('td');
             const badge = document.createElement('span');
@@ -206,12 +201,25 @@ async function renderHistory() {
             badge.textContent = displayStatus;
             tdStatus.appendChild(badge);
 
+            // Show rejection reason if rejected
+            if (b.status === 'rejected' && b.alasan_penolakan) {
+                const reasonDiv = document.createElement('div');
+                reasonDiv.className = 'rejection-reason mt-1';
+                reasonDiv.textContent = `Alasan: ${b.alasan_penolakan}`;
+                tdStatus.appendChild(reasonDiv);
+            }
+
             const tdAction = document.createElement('td');
-            if (b.status === 'rejected') {
+            if (b.status === 'approved') {
+                const btnPrint = document.createElement('button');
+                btnPrint.className = 'btn btn-sm btn-gold rounded-pill';
+                btnPrint.textContent = '🖨️ Cetak Bukti';
+                btnPrint.addEventListener('click', () => printReceipt(b));
+                tdAction.appendChild(btnPrint);
+            } else if (b.status === 'rejected') {
                 const btn = document.createElement('button');
                 btn.className = 'btn btn-sm btn-outline-primary rounded-pill';
                 btn.textContent = 'Isi Ulang Form';
-                // Pakai data-* bukan onclick string — aman dari XSS
                 btn.dataset.roomId = b.roomId || b.room_id;
                 btn.dataset.roomName = roomName;
                 btn.addEventListener('click', () => openBookingForm(btn.dataset.roomId, btn.dataset.roomName));
@@ -219,13 +227,14 @@ async function renderHistory() {
             } else {
                 const span = document.createElement('span');
                 span.className = 'text-muted small';
-                span.textContent = 'Menunggu Admin / Selesai';
+                span.textContent = 'Menunggu Admin';
                 tdAction.appendChild(span);
             }
 
             tr.appendChild(tdDate);
             tr.appendChild(tdRoom);
             tr.appendChild(tdSchedule);
+            tr.appendChild(tdDosenPJ);
             tr.appendChild(tdStatus);
             tr.appendChild(tdAction);
             tbody.appendChild(tr);
@@ -234,6 +243,22 @@ async function renderHistory() {
         console.error('Gagal memuat riwayat peminjaman:', err);
         msg.classList.remove('d-none');
     }
+}
+
+// ─── Cetak Bukti Peminjaman ────────────────────────────────────────────────────
+function printReceipt(booking) {
+    const user = getCurrentUser();
+    document.getElementById('printNama').textContent = user.nama || user.username;
+    document.getElementById('printNim').textContent = user.username;
+    document.getElementById('printRoom').textContent = booking.roomName || booking.room_name || '-';
+    document.getElementById('printDate').textContent = booking.date;
+    document.getElementById('printDuration').textContent = booking.duration || '-';
+    document.getElementById('printDosenPJ').textContent = booking.dosen_pj || '-';
+    document.getElementById('printPurpose').textContent = booking.purpose || '-';
+    document.getElementById('printSigPeminjam').textContent = user.nama || user.username;
+
+    // Trigger browser print
+    window.print();
 }
 
 function formatImageUrl(url) {
@@ -249,7 +274,6 @@ function formatImageUrl(url) {
     return url;
 }
 
-// Helper: konversi status backend (EN) ke label tampilan (ID)
 function getStatusLabel(status) {
     const map = {
         pending:  'Menunggu Konfirmasi',

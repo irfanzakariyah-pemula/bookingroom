@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard User - Booking Ruangan</title>
+    <meta name="description" content="Dashboard User SIPERU — Ajukan peminjaman ruangan di Universitas Yudharta Pasuruan.">
+    <title>Dashboard User — SIPERU Universitas Yudharta Pasuruan</title>
 </head>
 <body class="bg-light">
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light glass-card mb-4 mt-2 mx-3">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-siperu mb-4 mt-2 mx-3" style="border-radius: 16px;">
         <div class="container-fluid">
-            <span class="navbar-brand header-title">Booking<span class="text-dark">User</span></span>
+            <span class="navbar-brand"><span class="brand-gold">SIPERU</span> User</span>
             <div class="d-flex align-items-center">
-                <span class="me-3 text-muted" id="userNameDisplay">Halo!</span>
-                <button class="btn btn-outline-danger rounded-pill px-4" id="logoutBtn">Log Out</button>
+                <span class="me-3 text-light opacity-75" id="userNameDisplay">Halo!</span>
+                <button class="btn btn-outline-light rounded-pill px-4" id="logoutBtn">Log Out</button>
             </div>
         </div>
     </nav>
@@ -21,7 +22,8 @@
         
         <!-- View: Daftar Ruangan -->
         <div id="viewRooms" class="fade-in">
-            <h3 class="mb-4 text-center">Pilih Ruangan Tersedia</h3>
+            <h3 class="mb-1 header-title text-center">Pilih Ruangan Tersedia</h3>
+            <p class="text-muted text-center mb-4">Universitas Yudharta Pasuruan</p>
             <div class="row g-4" id="roomListContainer">
                 <!-- Dijenerasi via JS -->
             </div>
@@ -31,7 +33,7 @@
         <div id="viewForm" class="fade-in d-none">
             <button class="btn btn-secondary mb-3 rounded-pill" id="btnBackToRooms">&larr; Kembali ke Daftar Ruangan</button>
             <div class="glass-card p-4 mx-auto" style="max-width: 600px;">
-                <h4 class="mb-4 header-title text-center">Formulir Peminjaman</h4>
+                <h4 class="mb-4 header-title text-center">Formulir Peminjaman Ruangan</h4>
                 <div class="alert alert-info py-2"><span id="selectedRoomDisplay" class="fw-bold"></span></div>
                 
                 <form id="bookingForm">
@@ -46,8 +48,12 @@
                         <input type="number" min="1" max="24" class="form-control form-control-lg" id="bookingDuration" placeholder="Contoh: 2" required>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Dosen Penanggung Jawab</label>
+                        <input type="text" class="form-control form-control-lg" id="bookingDosenPJ" placeholder="Nama dosen yang bertanggung jawab" required>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Keperluan</label>
-                        <textarea class="form-control" id="bookingPurpose" rows="3" required></textarea>
+                        <textarea class="form-control" id="bookingPurpose" rows="3" required placeholder="Jelaskan keperluan peminjaman ruangan..."></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary-custom w-100 btn-lg rounded-pill">Ajukan Peminjaman</button>
                 </form>
@@ -57,7 +63,7 @@
         <!-- View: Status & Riwayat -->
         <div id="viewHistory" class="fade-in mt-5">
             <hr>
-            <h4 class="mb-3">Status Pengajuan & Riwayat Peminjaman</h4>
+            <h4 class="mb-3 header-title">Status Pengajuan & Riwayat Peminjaman</h4>
             <div id="noHistoryMsg" class="alert alert-secondary d-none">Belum ada pengajuan.</div>
             <div class="table-responsive glass-card p-2 rounded">
                 <table class="table table-hover align-middle mb-0">
@@ -66,7 +72,8 @@
                             <th>Tanggal Diajukan</th>
                             <th>Ruangan</th>
                             <th>Waktu Pemakaian</th>
-                            <th>Status (Menunggu/Disetujui/Ditolak)</th>
+                            <th>Dosen PJ</th>
+                            <th>Status</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -77,6 +84,42 @@
             </div>
         </div>
         
+    </div>
+
+    <!-- Hidden Print Receipt Layout -->
+    <div class="print-receipt" id="printReceipt">
+        <div class="header-univ">
+            <h2>Universitas Yudharta Pasuruan</h2>
+            <h3>Surat Bukti Peminjaman Ruangan</h3>
+            <p style="margin:0; font-size: 0.85rem;">Jl. Yudharta No.7, Sengonagung, Purwosari, Pasuruan, Jawa Timur</p>
+        </div>
+        <p style="text-align:center; font-size: 0.9rem; margin-bottom: 1.5rem;"><em>Dokumen ini merupakan bukti resmi peminjaman ruangan yang telah disetujui.</em></p>
+        <table>
+            <tr><td style="width:180px"><strong>Nama Peminjam</strong></td><td>: <span id="printNama"></span></td></tr>
+            <tr><td><strong>NIM / NIP</strong></td><td>: <span id="printNim"></span></td></tr>
+            <tr><td><strong>Ruangan</strong></td><td>: <span id="printRoom"></span></td></tr>
+            <tr><td><strong>Tanggal Pemakaian</strong></td><td>: <span id="printDate"></span></td></tr>
+            <tr><td><strong>Durasi</strong></td><td>: <span id="printDuration"></span> Jam</td></tr>
+            <tr><td><strong>Dosen Penanggung Jawab</strong></td><td>: <span id="printDosenPJ"></span></td></tr>
+            <tr><td><strong>Keperluan</strong></td><td>: <span id="printPurpose"></span></td></tr>
+            <tr><td><strong>Status</strong></td><td>: <strong style="color: green;">DISETUJUI</strong></td></tr>
+        </table>
+        <div class="signature-row">
+            <div class="sig-block">
+                <p>Peminjam,</p>
+                <div class="sig-line"></div>
+                <p id="printSigPeminjam"></p>
+            </div>
+            <div class="sig-block">
+                <p>Mengetahui,<br>Admin / Kepala TU</p>
+                <div class="sig-line"></div>
+                <p>(_______________________)</p>
+            </div>
+        </div>
+        <div class="qr-mock">
+            <p>[ QR Verification Code ]</p>
+            <p style="font-size:0.7rem;">Dokumen ini sah dan dapat diverifikasi melalui sistem SIPERU Universitas Yudharta Pasuruan.</p>
+        </div>
     </div>
 
     <script type="module" src="/main.js"></script>

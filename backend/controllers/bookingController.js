@@ -5,11 +5,12 @@ const TABLE = 'bookings';
 // ─── POST /api/bookings (user) ────────────────────────────────────────────────
 const addBooking = async (req, res) => {
     try {
-        const { roomId, roomName, date, duration, purpose } = req.body;
+        const { roomId, roomName, date, duration, purpose, dosen_pj } = req.body;
 
         // userId SELALU diambil dari JWT token, bukan dari body request (mencegah manipulasi)
         const userId = req.user.uid;
         const username = req.user.username;
+        const prodi = req.user.prodi;
 
         if (!roomId || !date || !duration || !purpose) {
             return res.status(400).json({ message: 'roomId, date, duration, dan purpose wajib diisi.' });
@@ -54,6 +55,8 @@ const addBooking = async (req, res) => {
             date,
             duration: parsedDuration,
             purpose,
+            dosen_pj: dosen_pj || null,
+            prodi: prodi || null,
             status: 'pending',
             timestamp: new Date().toISOString(),
         };
@@ -115,7 +118,7 @@ const getUserBookings = async (req, res) => {
 const updateBookingStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { status, alasan_penolakan } = req.body;
 
         const VALID_STATUSES = ['pending', 'approved', 'rejected'];
         if (!VALID_STATUSES.includes(status)) {
@@ -135,9 +138,16 @@ const updateBookingStatus = async (req, res) => {
             return res.status(404).json({ message: 'Data booking tidak ditemukan.' });
         }
 
+        const updateData = { status, updated_at: new Date().toISOString() };
+        if (status === 'rejected') {
+            updateData.alasan_penolakan = alasan_penolakan || 'Tidak ada alasan spesifik';
+        } else {
+            updateData.alasan_penolakan = null; // Clear rejection reason if approved
+        }
+
         const { error: updateError } = await supabase
             .from(TABLE)
-            .update({ status, updated_at: new Date().toISOString() })
+            .update(updateData)
             .eq('id', id);
 
         if (updateError) throw updateError;

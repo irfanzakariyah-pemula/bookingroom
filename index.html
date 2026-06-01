@@ -4,51 +4,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking Ruangan - Login Modern</title>
+    <meta name="description" content="SIPERU — Sistem Informasi Peminjaman Ruangan Universitas Yudharta Pasuruan. Login untuk mengajukan atau mengelola peminjaman ruangan kampus.">
+    <title>SIPERU — Sistem Peminjaman Ruangan | Universitas Yudharta Pasuruan</title>
 </head>
 
 <body class="login-body">
-    <div class="split-layout">
-        <!-- Panel Gambar / Branding -->
-        <div class="split-left">
-            <div class="left-content">
-                <h1 class="brand-huge">Booking<span class="text-primary-accent">Ruangan</span></h1>
-                <p class="brand-tagline mt-2">Ruang kolaborasi tak terbatas untuk ide-ide brilian Anda. Pesan sekarang
-                    hanya dengan beberapa klik.</p>
-            </div>
-        </div>
+    <!-- Animated Background Blobs -->
+    <div class="login-bg-decor">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
 
-        <!-- Panel Form Login -->
-        <div class="split-right">
-            <div class="login-container fade-in">
-                <div class="mb-5">
-                    <h2 class="auth-title">Selamat Datang ✨</h2>
-                    <p class="text-muted mt-2">Masuk ke akun Anda untuk mulai memesan ruangan</p>
+    <!-- Centered Login Card -->
+    <div class="login-wrapper">
+        <div class="login-glass-card">
+            <!-- Logo Icon -->
+            <div class="login-logo-icon">🏛️</div>
+
+            <h1 class="login-title">SIPERU</h1>
+            <p class="login-subtitle">
+                Sistem Informasi Peminjaman Ruangan<br>
+                <span class="univ-name">Universitas Yudharta Pasuruan</span>
+            </p>
+
+            <form id="loginForm">
+                <div id="loginError" class="alert custom-alert-danger d-none" role="alert">
+                    Login Tidak Berhasil! Periksa NIM/NIP dan password Anda.
                 </div>
 
-                <form id="loginForm">
-                    <div id="loginError" class="alert custom-alert-danger d-none py-3" role="alert">
-                        Login Tidak Berhasil! Periksa username/password Anda.
-                    </div>
+                <div class="mb-3">
+                    <label for="username" class="form-label">NIM / NIP / Username</label>
+                    <input type="text" class="form-control" id="username" required placeholder="Masukkan NIM atau NIP Anda">
+                </div>
 
-                    <div class="form-floating mb-4 form-floating-custom">
-                        <input type="text" class="form-control" id="username" required placeholder="User / Admin">
-                        <label for="username">Username</label>
-                    </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" required placeholder="Masukkan password">
+                </div>
 
-                    <div class="form-floating mb-5 form-floating-custom">
-                        <input type="password" class="form-control" id="password" required placeholder="*****">
-                        <label for="password">Password</label>
-                    </div>
+                <button type="submit" class="btn btn-login w-100">Masuk ke Dashboard</button>
 
-                    <button type="submit" class="btn btn-primary-custom w-100 rounded-pill shadow-sm">Masuk ke
-                        Dashboard</button>
-
-                    <div class="text-center mt-5 small text-muted">
-                        <p class="mb-1">Gunakan akun yang telah terdaftar di sistem.</p>
-                    </div>
-                </form>
-            </div>
+                <p class="login-footer-text">
+                    Gunakan akun NIM/NIP yang telah didaftarkan oleh Admin.<br>
+                    &copy; 2026 Universitas Yudharta Pasuruan
+                </p>
+            </form>
         </div>
     </div>
 
@@ -64,7 +65,6 @@
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const userVal = document.getElementById('username').value;
-
             const passVal = document.getElementById('password').value;
             const submitBtn = e.target.querySelector('[type="submit"]');
             const errDiv = document.getElementById('loginError');
@@ -77,7 +77,7 @@
             if (result.success) {
                 window.location.href = result.role === 'admin' ? 'admin.html' : 'user.html';
             } else {
-                errDiv.textContent = result.message || 'Login Tidak Berhasil! Periksa username/password Anda.';
+                errDiv.textContent = result.message || 'Login Tidak Berhasil! Periksa NIM/NIP dan password Anda.';
                 errDiv.classList.remove('d-none');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Masuk ke Dashboard';

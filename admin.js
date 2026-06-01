@@ -5,8 +5,6 @@ const API_URL = window.location.hostname === 'localhost' || window.location.host
     ? 'http://localhost:5000/api'
     : 'https://bookingroom-r3nz.onrender.com/api';
 
-
-
 checkAuth('admin');
 
 // ─── Helper: Escape HTML untuk mencegah XSS ───────────────────────────────────
@@ -32,12 +30,37 @@ document.addEventListener('DOMContentLoaded', () => {
     renderRooms();
     renderKonfirmasi();
     renderHistory();
+    renderStats();
 
     document.getElementById('roomForm').addEventListener('submit', handleRoomSubmit);
     document.getElementById('cancelEditRoom').addEventListener('click', cancelEditForm);
     document.getElementById('roomPhoto').addEventListener('change', previewPhoto);
     document.getElementById('registerForm').addEventListener('submit', handleRegisterSubmit);
+    document.getElementById('confirmRejectBtn').addEventListener('click', handleConfirmReject);
 });
+
+// ================= STATISTIK DASHBOARD =================
+async function renderStats() {
+    try {
+        const [roomsRes, bookingsRes] = await Promise.all([
+            fetch(`${API_URL}/rooms`),
+            fetch(`${API_URL}/bookings`, { headers: getAuthHeaders() })
+        ]);
+        const rooms = await roomsRes.json();
+        const bookings = await bookingsRes.json();
+
+        const available = rooms.filter(r => r.status === 'available').length;
+        const pending = bookings.filter(b => b.status === 'pending').length;
+        const approved = bookings.filter(b => b.status === 'approved').length;
+
+        document.getElementById('statRooms').textContent = available;
+        document.getElementById('statPending').textContent = pending;
+        document.getElementById('statApproved').textContent = approved;
+        document.getElementById('statTotal').textContent = bookings.length;
+    } catch (err) {
+        console.error('Gagal memuat statistik:', err);
+    }
+}
 
 // ================= MANAJEMEN RUANGAN =================
 async function renderRooms() {
@@ -52,7 +75,6 @@ async function renderRooms() {
             const badge = r.status === 'available' ? 'bg-success' : 'bg-secondary';
             const tr = document.createElement('tr');
 
-            // Kolom Nama — textContent aman dari XSS
             const tdName = document.createElement('td');
             tdName.className = 'fw-bold';
             tdName.textContent = r.name;
@@ -83,7 +105,6 @@ async function renderRooms() {
             }
 
             const tdAction = document.createElement('td');
-            // Tombol Edit — data-id bukan onclick string
             const btnEdit = document.createElement('button');
             btnEdit.className = 'btn btn-sm btn-outline-primary rounded-pill me-1';
             btnEdit.textContent = 'Edit';
@@ -132,7 +153,7 @@ async function handleRoomSubmit(e) {
     }
 
     const token = localStorage.getItem('token');
-    const headers = { 'Authorization': `Bearer ${token}` }; // Do not set Content-Type header manually for FormData
+    const headers = { 'Authorization': `Bearer ${token}` };
 
     try {
         let res;
@@ -157,10 +178,10 @@ async function handleRoomSubmit(e) {
             return;
         }
 
-        // Tampilkan pesan sukses (termasuk warning jika foto gagal upload)
         alert(data.message);
         cancelEditForm();
         await renderRooms();
+        await renderStats();
     } catch (err) {
         console.error('Gagal menyimpan ruangan:', err);
         alert('Gagal menyimpan ruangan. Pastikan server backend berjalan.');
@@ -196,6 +217,7 @@ async function removeRoom(id) {
                 headers: getAuthHeaders()
             });
             await renderRooms();
+            await renderStats();
         } catch (err) {
             console.error('Gagal menghapus ruangan:', err);
             alert('Gagal menghapus ruangan. Coba lagi.');
@@ -232,13 +254,16 @@ async function handleRegisterSubmit(e) {
     const btn = document.getElementById('registerBtn');
     const alertBox = document.getElementById('registerAlert');
 
+    const nim = document.getElementById('regNim').value.trim();
+
     const userData = {
         nama:     document.getElementById('regNama').value.trim(),
         email:    document.getElementById('regEmail').value.trim(),
-        nim:      document.getElementById('regNim').value.trim(),
-        username: document.getElementById('regUsername').value.trim(),
+        nim:      nim,
+        username: nim, // NIM/NIP otomatis jadi username login
         password: document.getElementById('regPassword').value,
         role:     document.getElementById('regRole').value,
+        prodi:    document.getElementById('regProdi').value,
     };
 
     btn.disabled = true;
@@ -249,7 +274,7 @@ async function handleRegisterSubmit(e) {
 
     if (result.success) {
         alertBox.className = 'alert alert-success mb-3';
-        alertBox.textContent = `✅ Akun "${userData.username}" berhasil dibuat!`;
+        alertBox.textContent = `✅ Akun "${userData.nim}" berhasil dibuat! Login menggunakan NIM/NIP tersebut.`;
         document.getElementById('registerForm').reset();
     } else {
         alertBox.className = 'alert alert-danger mb-3';
@@ -302,7 +327,6 @@ async function renderKonfirmasi() {
             const div = document.createElement('div');
             div.className = 'border p-3 mb-3 rounded-3 shadow-sm bg-white fade-in';
 
-            // Header: username + timestamp (aman via textContent)
             const header = document.createElement('div');
             header.className = 'd-flex justify-content-between align-items-center mb-2';
             const userStrong = document.createElement('strong');
@@ -314,15 +338,15 @@ async function renderKonfirmasi() {
             header.appendChild(userStrong);
             header.appendChild(timeSmall);
 
-            // Detail: roomName, date, purpose — escapeHTML untuk keamanan di dalam innerHTML
             const detailDiv = document.createElement('div');
+            const dosenPJ = b.dosen_pj || '-';
             detailDiv.innerHTML = [
                 `<p class="mb-1"><strong>Ruangan:</strong> ${escapeHTML(b.roomName || b.room_name)}</p>`,
                 `<p class="mb-1"><strong>Tanggal Pakai:</strong> ${escapeHTML(b.date)} (${escapeHTML(String(b.duration || '-'))} Jam)</p>`,
+                `<p class="mb-1"><strong>Dosen Penanggung Jawab:</strong> ${escapeHTML(dosenPJ)}</p>`,
                 `<p class="mb-3"><strong>Keperluan:</strong> ${escapeHTML(b.purpose)}</p>`,
             ].join('');
 
-            // Tombol aksi — data-* bukan onclick string
             const btnRow = document.createElement('div');
             btnRow.className = 'd-flex gap-2';
 
@@ -333,8 +357,8 @@ async function renderKonfirmasi() {
 
             const btnReject = document.createElement('button');
             btnReject.className = 'btn btn-danger btn-sm px-4 rounded-pill flex-fill';
-            btnReject.textContent = 'Tolak (Ulangi Form)';
-            btnReject.addEventListener('click', () => processBooking(b.id, 'rejected', b.username || b.user));
+            btnReject.textContent = 'Tolak';
+            btnReject.addEventListener('click', () => openRejectModal(b.id, b.username || b.user));
 
             btnRow.appendChild(btnApprove);
             btnRow.appendChild(btnReject);
@@ -350,9 +374,54 @@ async function renderKonfirmasi() {
     }
 }
 
+// ─── Reject Modal Logic ────────────────────────────────────────────────────────
+function openRejectModal(bookingId, username) {
+    document.getElementById('rejectBookingId').value = bookingId;
+    document.getElementById('rejectBookingUser').value = username;
+    document.getElementById('rejectReason').value = '';
+    const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+    modal.show();
+}
+
+async function handleConfirmReject() {
+    const id = document.getElementById('rejectBookingId').value;
+    const user = document.getElementById('rejectBookingUser').value;
+    const reason = document.getElementById('rejectReason').value.trim();
+
+    if (!reason) {
+        alert('Harap isi alasan penolakan!');
+        return;
+    }
+
+    try {
+        await fetch(`${API_URL}/bookings/${id}/status`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ status: 'rejected', alasan_penolakan: reason })
+        });
+
+        // Close modal
+        const modalEl = document.getElementById('rejectModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+
+        showNotification(`Pengajuan dari ${escapeHTML(user)} telah Ditolak.`);
+        await renderKonfirmasi();
+        await renderHistory();
+        await renderStats();
+    } catch (err) {
+        console.error('Gagal menolak booking:', err);
+        alert('Gagal memperbarui status. Coba lagi.');
+    }
+}
+
 async function processBooking(id, status, user) {
-    const label = status === 'approved' ? 'Setujui' : 'Tolak';
-    if (confirm(`Yakin ingin ${label} pengajuan ini?`)) {
+    if (status === 'rejected') {
+        openRejectModal(id, user);
+        return;
+    }
+
+    if (confirm(`Yakin ingin Setujui pengajuan ini?`)) {
         try {
             await fetch(`${API_URL}/bookings/${id}/status`, {
                 method: 'PUT',
@@ -364,6 +433,7 @@ async function processBooking(id, status, user) {
             showNotification(`Pengajuan dari ${escapeHTML(user)} telah ${displayStatus}.`);
             await renderKonfirmasi();
             await renderHistory();
+            await renderStats();
         } catch (err) {
             console.error('Gagal memperbarui status booking:', err);
             alert('Gagal memperbarui status. Coba lagi.');
@@ -397,12 +467,15 @@ async function renderHistory() {
             const displayStatus = getStatusLabel(b.status);
             const tr = document.createElement('tr');
 
-            // Semua sel diisi via textContent — aman dari XSS
             const tdDate = document.createElement('td');
             tdDate.textContent = new Date(b.timestamp || b.created_at).toLocaleDateString('id-ID');
 
             const tdUser = document.createElement('td');
             tdUser.textContent = b.username || b.user || '-';
+
+            const tdProdi = document.createElement('td');
+            tdProdi.className = 'small text-muted';
+            tdProdi.textContent = b.prodi || '-';
 
             const tdRoom = document.createElement('td');
             tdRoom.className = 'fw-bold';
@@ -417,8 +490,17 @@ async function renderHistory() {
             badge.textContent = displayStatus;
             tdStatus.appendChild(badge);
 
+            // Show rejection reason if rejected
+            if (b.status === 'rejected' && b.alasan_penolakan) {
+                const reasonDiv = document.createElement('div');
+                reasonDiv.className = 'rejection-reason mt-1';
+                reasonDiv.textContent = b.alasan_penolakan;
+                tdStatus.appendChild(reasonDiv);
+            }
+
             tr.appendChild(tdDate);
             tr.appendChild(tdUser);
+            tr.appendChild(tdProdi);
             tr.appendChild(tdRoom);
             tr.appendChild(tdSchedule);
             tr.appendChild(tdStatus);
@@ -426,7 +508,7 @@ async function renderHistory() {
         });
     } catch (err) {
         console.error('Gagal memuat riwayat admin:', err);
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Gagal memuat riwayat.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Gagal memuat riwayat.</td></tr>';
     }
 }
 

@@ -25,10 +25,11 @@ export async function login(username, password) {
             uid: data.uid,
             role: data.role,
             username: data.username,
-            nama: data.nama
+            nama: data.nama,
+            prodi: data.prodi
         }));
 
-        return { success: true, uid: data.uid, role: data.role, username: data.username, nama: data.nama };
+        return { success: true, uid: data.uid, role: data.role, username: data.username, nama: data.nama, prodi: data.prodi };
     } catch (err) {
         console.error('Login error:', err);
         return { success: false, message: 'Tidak dapat terhubung ke server' };
@@ -40,7 +41,7 @@ export async function login(username, password) {
  * @param {object} userData - { nama, email, nim, username, password, role }
  * @returns {Promise<{success: boolean, message?: string}>}
  */
-export async function register({ nama, email, nim, username, password, role = 'user' }) {
+export async function register({ nama, email, nim, username, password, role = 'user', prodi }) {
     const token = localStorage.getItem('token');
     try {
         const res = await fetch(`${API_URL}/auth/register`, {
@@ -49,7 +50,7 @@ export async function register({ nama, email, nim, username, password, role = 'u
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ nama, email, nim, username, password, role })
+            body: JSON.stringify({ nama, email, nim, username, password, role, prodi })
         });
 
         const data = await res.json();
