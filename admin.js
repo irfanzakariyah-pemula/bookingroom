@@ -1,5 +1,5 @@
 // admin.js
-import { checkAuth, register } from './auth.js';
+import { checkAuth, register, isTokenExpired, logout } from './auth.js';
 
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5000/api'
@@ -136,7 +136,7 @@ async function renderRooms() {
 async function handleRoomSubmit(e) {
     e.preventDefault();
     const id = document.getElementById('roomId').value;
-    
+
     const formData = new FormData();
     formData.append('name', document.getElementById('roomName').value);
     formData.append('capacity', document.getElementById('roomCapacity').value);
@@ -254,16 +254,24 @@ async function handleRegisterSubmit(e) {
     const btn = document.getElementById('registerBtn');
     const alertBox = document.getElementById('registerAlert');
 
+    // Cek apakah token masih berlaku sebelum register
+    if (isTokenExpired()) {
+        alertBox.className = 'alert alert-warning mb-3';
+        alertBox.textContent = '⚠️ Sesi Anda telah berakhir. Silakan login kembali.';
+        setTimeout(() => logout(), 2000);
+        return;
+    }
+
     const nim = document.getElementById('regNim').value.trim();
 
     const userData = {
-        nama:     document.getElementById('regNama').value.trim(),
-        email:    document.getElementById('regEmail').value.trim(),
-        nim:      nim,
+        nama: document.getElementById('regNama').value.trim(),
+        email: document.getElementById('regEmail').value.trim(),
+        nim: nim,
         username: nim, // NIM/NIP otomatis jadi username login
         password: document.getElementById('regPassword').value,
-        role:     document.getElementById('regRole').value,
-        prodi:    document.getElementById('regProdi').value,
+        role: document.getElementById('regRole').value,
+        prodi: document.getElementById('regProdi').value,
     };
 
     btn.disabled = true;
@@ -277,8 +285,16 @@ async function handleRegisterSubmit(e) {
         alertBox.textContent = `✅ Akun "${userData.nim}" berhasil dibuat! Login menggunakan NIM/NIP tersebut.`;
         document.getElementById('registerForm').reset();
     } else {
-        alertBox.className = 'alert alert-danger mb-3';
-        alertBox.textContent = `❌ Gagal: ${result.message}`;
+        // Tangani kasus token expired (Unauthorized) secara khusus
+        const msg = result.message;
+        if (msg === 'Unauthorized' || msg === 'No token provided') {
+            alertBox.className = 'alert alert-warning mb-3';
+            alertBox.textContent = '⚠️ Sesi Anda telah berakhir. Silakan login kembali.';
+            setTimeout(() => logout(), 2000);
+        } else {
+            alertBox.className = 'alert alert-danger mb-3';
+            alertBox.textContent = `❌ Gagal: ${msg}`;
+        }
     }
 
     btn.disabled = false;
@@ -289,7 +305,7 @@ function previewPhoto() {
     const input = document.getElementById('roomPhoto');
     const container = document.getElementById('photoPreviewContainer');
     const img = document.getElementById('photoPreview');
-    
+
     if (input.files && input.files[0]) {
         const file = input.files[0];
         img.src = URL.createObjectURL(file);
@@ -515,7 +531,7 @@ async function renderHistory() {
 // Helper: konversi status backend (EN) ke label tampilan (ID)
 function getStatusLabel(status) {
     const map = {
-        pending:  'Menunggu Konfirmasi',
+        pending: 'Menunggu Konfirmasi',
         approved: 'Disetujui',
         rejected: 'Ditolak',
     };

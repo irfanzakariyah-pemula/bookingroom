@@ -70,6 +70,21 @@ export function getCurrentUser() {
     return JSON.parse(localStorage.getItem('currentUser'));
 }
 
+// Cek apakah JWT token sudah expired
+export function isTokenExpired() {
+    const token = localStorage.getItem('token');
+    if (!token) return true;
+
+    try {
+        // JWT payload ada di bagian kedua (base64 encoded)
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        // exp dalam detik, Date.now() dalam milidetik
+        return (payload.exp * 1000) < Date.now();
+    } catch (e) {
+        return true; // token rusak = anggap expired
+    }
+}
+
 export function logout() {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('token');
@@ -82,6 +97,14 @@ export function checkAuth(requiredRole) {
         window.location.href = 'index.html';
         return;
     }
+
+    // Cek apakah token expired — otomatis logout jika iya
+    if (isTokenExpired()) {
+        alert('Sesi Anda telah berakhir. Silakan login kembali.');
+        logout();
+        return;
+    }
+
     if (requiredRole && user.role !== requiredRole) {
         if (user.role === 'admin') window.location.href = 'admin.html';
         else window.location.href = 'user.html';

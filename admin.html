@@ -198,7 +198,7 @@
                                             <option value="S1 Teknik Sipil">S1 Teknik Sipil</option>
                                             <option value="S1 Teknik Industri">S1 Teknik Industri</option>
                                         </optgroup>
-                                        <optgroup label="Fakultas Ilmu Sosial & Humaniora">
+                                        <optgroup label="Fakultas Ilmu Sosial &amp; Humaniora">
                                             <option value="S1 Ilmu Administrasi Negara">S1 Ilmu Administrasi Negara</option>
                                             <option value="S1 Ilmu Komunikasi">S1 Ilmu Komunikasi</option>
                                             <option value="S1 Psikologi">S1 Psikologi</option>
@@ -218,7 +218,7 @@
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label small">Password</label>
-                                    <input type="password" id="regPassword" class="form-control" placeholder="Min. 8 karakter (huruf & angka)" required minlength="8" pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$" title="Password harus minimal 8 karakter dan mengandung kombinasi huruf dan angka.">
+                                    <input type="password" id="regPassword" class="form-control" placeholder="Min. 6 karakter" required minlength="6" title="Password harus minimal 6 karakter.">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small">Role</label>
@@ -231,17 +231,37 @@
                             </form>
                         </div>
                     </div>
-                    <!-- Info -->
+                    <!-- Daftar User Terdaftar -->
                     <div class="col-md-7">
                         <div class="glass-card p-4">
-                            <h5 class="mb-3">Panduan Pendaftaran Akun</h5>
-                            <ul class="text-muted">
-                                <li class="mb-2">Akun yang dibuat di sini bisa langsung digunakan untuk login menggunakan <strong>NIM/NIP</strong> sebagai username.</li>
-                                <li class="mb-2"><strong>Role User</strong>: Hanya bisa mengajukan peminjaman ruangan.</li>
-                                <li class="mb-2"><strong>Role Admin</strong>: Dapat mengelola ruangan dan menyetujui/menolak peminjaman.</li>
-                                <li class="mb-2">Gunakan <strong>NIM</strong> untuk mahasiswa dan <strong>NIP</strong> untuk dosen/staf.</li>
-                                <li class="mb-2">Pilih <strong>Program Studi</strong> yang sesuai. Prodi non-teknik juga dapat meminjam ruangan untuk kegiatan lintas fakultas.</li>
-                            </ul>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">Daftar User Terdaftar</h5>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="text" id="userSearchInput" class="form-control form-control-sm rounded-pill" placeholder="🔍 Cari nama / NIM..." style="max-width: 200px;">
+                                    <button class="btn btn-sm btn-outline-secondary rounded-pill" id="refreshUserListBtn" title="Refresh">🔄</button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle" id="userTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama</th>
+                                            <th>NIM/NIP</th>
+                                            <th>Email</th>
+                                            <th>Prodi</th>
+                                            <th>Role</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="userTableBody">
+                                        <!-- JS generated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="userTableEmpty" class="d-none text-center text-muted py-4">
+                                <span style="font-size: 2rem;">👥</span>
+                                <p class="mt-2 mb-0">Belum ada user terdaftar.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -267,6 +287,77 @@
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
                     <button type="button" class="btn btn-danger rounded-pill px-4" id="confirmRejectBtn">Tolak Pengajuan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit User -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold text-white" id="editUserModalLabel">✏️ Edit Data User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editUserId">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Nama Lengkap</label>
+                            <input type="text" id="editUserNama" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Email</label>
+                            <input type="email" id="editUserEmail" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">NIM / NIP (Username Login)</label>
+                            <input type="text" id="editUserNim" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Program Studi</label>
+                            <select id="editUserProdi" class="form-select">
+                                <optgroup label="Fakultas Teknik">
+                                    <option value="S1 Teknik Informatika">S1 Teknik Informatika</option>
+                                    <option value="S1 Teknik Sipil">S1 Teknik Sipil</option>
+                                    <option value="S1 Teknik Industri">S1 Teknik Industri</option>
+                                </optgroup>
+                                <optgroup label="Fakultas Ilmu Sosial & Humaniora">
+                                    <option value="S1 Ilmu Administrasi Negara">S1 Ilmu Administrasi Negara</option>
+                                    <option value="S1 Ilmu Komunikasi">S1 Ilmu Komunikasi</option>
+                                    <option value="S1 Psikologi">S1 Psikologi</option>
+                                </optgroup>
+                                <optgroup label="Fakultas Agama Islam">
+                                    <option value="S1 Pendidikan Agama Islam">S1 Pendidikan Agama Islam</option>
+                                    <option value="S1 Hukum Ekonomi Syariah">S1 Hukum Ekonomi Syariah</option>
+                                </optgroup>
+                                <optgroup label="Fakultas Pertanian">
+                                    <option value="S1 Agroteknologi">S1 Agroteknologi</option>
+                                </optgroup>
+                                <optgroup label="Lainnya">
+                                    <option value="Dosen / Staff">Dosen / Staff</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Role</label>
+                            <select id="editUserRole" class="form-select">
+                                <option value="user">User (Peminjam)</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Password Baru <span class="text-muted fw-normal">(kosongkan jika tidak diubah)</span></label>
+                            <input type="password" id="editUserPassword" class="form-control" placeholder="Min. 6 karakter">
+                        </div>
+                    </div>
+                    <div id="editUserAlert" class="d-none mt-3"></div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary-custom rounded-pill px-4" id="saveEditUserBtn">💾 Simpan Perubahan</button>
                 </div>
             </div>
         </div>
