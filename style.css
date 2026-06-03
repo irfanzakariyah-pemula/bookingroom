@@ -424,17 +424,189 @@ body {
 }
 
 /* =========================================
-   RESPONSIVE
+   RESPONSIVE & MOBILE OPTIMIZATIONS
    ========================================= */
+
+/* Scrollbar styling for table-responsive and nav-pills */
+.table-responsive::-webkit-scrollbar,
+.nav-pills::-webkit-scrollbar {
+  height: 5px;
+}
+.table-responsive::-webkit-scrollbar-thumb,
+.nav-pills::-webkit-scrollbar-thumb {
+  background: rgba(27, 77, 62, 0.25);
+  border-radius: 10px;
+}
+.table-responsive::-webkit-scrollbar-track,
+.nav-pills::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (max-width: 992px) {
+  .login-glass-card {
+    padding: 2.5rem 2rem;
+  }
+}
+
 @media (max-width: 768px) {
+  /* YouTube/Google style horizontal swipeable tabs */
+  .nav-pills {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+    gap: 6px;
+  }
+  .nav-pills .nav-item {
+    flex: 0 0 auto;
+  }
+  .nav-pills .nav-link {
+    padding: 0.55rem 1.1rem !important;
+    font-size: 0.88rem;
+  }
+
   .login-glass-card {
     padding: 2rem 1.5rem;
-    margin: 1rem;
+    margin: 1.5rem;
+    max-width: 100%;
   }
   .login-title {
-    font-size: 1.3rem;
+    font-size: 1.35rem;
+  }
+  .login-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Stats card optimization */
+  .stat-card {
+    padding: 1rem !important;
   }
   .stat-card .stat-value {
+    font-size: 1.35rem;
+  }
+  .stat-card .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 576px) {
+  body {
+    font-size: 0.95rem;
+  }
+  
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* Navbar padding & border radius for mobile */
+  .navbar-siperu {
+    margin: 0.5rem !important;
+    border-radius: 12px !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+  .navbar-siperu .navbar-brand {
+    font-size: 1.1rem;
+  }
+  .navbar-siperu #logoutBtn {
+    padding: 0.35rem 1rem !important;
+    font-size: 0.85rem;
+  }
+
+  /* General glass-card padding reduction */
+  .glass-card {
+    padding: 1.25rem !important;
+  }
+
+  /* Stats widget grid structure */
+  .stat-card {
+    padding: 0.75rem !important;
+    gap: 8px !important;
+  }
+  .stat-card .stat-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .stat-card .stat-value {
+    font-size: 1.15rem;
+  }
+  .stat-card .stat-label {
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+
+  /* Forms & fields adjustment */
+  .form-control, .form-select {
+    padding: 0.65rem 0.85rem !important;
+    font-size: 0.92rem !important;
+    border-radius: 10px !important;
+  }
+  .form-label {
+    font-size: 0.82rem;
+    margin-bottom: 0.25rem;
+  }
+
+  /* Buttons */
+  .btn-primary-custom, .btn-login, .btn-gold {
+    padding: 0.65rem !important;
+    font-size: 0.9rem !important;
+    border-radius: 12px !important;
+  }
+
+  /* Room card image scaling */
+  .room-card {
+    border-radius: 16px !important;
+    padding: 0.75rem !important;
+  }
+  .room-card img {
+    height: 130px !important;
+    margin-bottom: 0.75rem !important;
+  }
+  .room-card .card-title {
+    font-size: 1.05rem;
+  }
+  .room-card .card-text {
+    font-size: 0.78rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Modals padding & style */
+  .modal-dialog {
+    margin: 0.75rem;
+  }
+  .modal-content {
+    border-radius: 16px !important;
+  }
+  .modal-body {
+    padding: 1.25rem !important;
+  }
+  .modal-header, .modal-footer {
+    padding: 1rem 1.25rem !important;
+  }
+
+  /* Font adjustments for main headers */
+  .header-title {
     font-size: 1.4rem;
+  }
+}
+
+/* Extra small devices optimization */
+@media (max-width: 375px) {
+  .stat-card {
+    flex-direction: column;
+    align-items: flex-start !important;
+    text-align: left;
+  }
+  .stat-card .stat-icon {
+    margin-bottom: 0.25rem;
+  }
+  .navbar-siperu #userNameDisplay {
+    display: none; /* Hide welcome text to avoid navbar overflow */
   }
 }
