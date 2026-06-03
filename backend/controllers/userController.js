@@ -11,7 +11,22 @@ const getAllUsers = async (req, res) => {
             .select('id, username, nama, email, nim, role, prodi, created_at')
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            // Jika kolom prodi tidak ditemukan (code 42703), fallback ambil data tanpa kolom prodi
+            if (error.code === '42703' || error.message.includes('prodi')) {
+                const { data: fallbackUsers, error: fallbackError } = await supabase
+                    .from(TABLE)
+                    .select('id, username, nama, email, nim, role, created_at')
+                    .order('created_at', { ascending: false });
+
+                if (fallbackError) throw fallbackError;
+
+                // Tambahkan key prodi dengan nilai strip agar frontend tidak crash
+                const mapped = (fallbackUsers || []).map(u => ({ ...u, prodi: '-' }));
+                return res.json(mapped);
+            }
+            throw error;
+        }
 
         return res.json(users || []);
     } catch (err) {
@@ -31,7 +46,24 @@ const getUserById = async (req, res) => {
             .eq('id', id)
             .single();
 
-        if (error) throw error;
+        if (error) {
+            // Jika kolom prodi tidak ditemukan, fallback ambil tanpa prodi
+            if (error.code === '42703' || error.message.includes('prodi')) {
+                const { data: fallbackUser, error: fallbackError } = await supabase
+                    .from(TABLE)
+                    .select('id, username, nama, email, nim, role, created_at')
+                    .eq('id', id)
+                    .single();
+
+                if (fallbackError) throw fallbackError;
+                if (!fallbackUser) {
+                    return res.status(404).json({ message: 'User tidak ditemukan.' });
+                }
+
+                return res.json({ ...fallbackUser, prodi: '-' });
+            }
+            throw error;
+        }
 
         if (!user) {
             return res.status(404).json({ message: 'User tidak ditemukan.' });
@@ -121,7 +153,20 @@ const updateUser = async (req, res) => {
             .update(updateData)
             .eq('id', id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+            // Jika update gagal karena kolom prodi tidak ada di database, hapus prodi dan coba lagi
+            if (updateError.code === '42703' && updateData.hasOwnProperty('prodi')) {
+                delete updateData.prodi;
+                const { error: retryError } = await supabase
+                    .from(TABLE)
+                    .update(updateData)
+                    .eq('id', id);
+                
+                if (retryError) throw retryError;
+            } else {
+                throw updateError;
+            }
+        }
 
         return res.json({ message: 'Data user berhasil diperbarui.' });
     } catch (err) {
