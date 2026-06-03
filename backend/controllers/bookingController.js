@@ -100,34 +100,38 @@ const addBooking = async (req, res) => {
 // ─── GET /api/bookings (admin — semua booking) ────────────────────────────────
 const getAllBookings = async (req, res) => {
     try {
-        // Ambil bookings dan join ke booking_users untuk mendapatkan prodi user ter-update secara dinamis
-        const { data: bookings, error } = await supabase
+        // 1. Ambil data bookings
+        const { data: bookings, error: bookingsError } = await supabase
             .from(TABLE)
-            .select(`
-                *,
-                booking_users (
-                    prodi
-                )
-            `)
+            .select('*')
             .order('timestamp', { ascending: false });
 
-        if (error) {
-            // Fallback jika query join/relation bermasalah atau RLS aktif di booking_users
-            const { data: fallbackBookings, error: fallbackError } = await supabase
-                .from(TABLE)
-                .select('*')
-                .order('timestamp', { ascending: false });
+        if (bookingsError) throw bookingsError;
 
-            if (fallbackError) throw fallbackError;
-            return res.json(fallbackBookings || []);
+        // 2. Ambil data users untuk mengambil prodi masing-masing
+        const { data: users, error: usersError } = await supabase
+            .from('booking_users')
+            .select('id, username, prodi');
+
+        // Buat map user id / username ke prodi
+        const userMap = new Map();
+        if (users && users.length > 0) {
+            users.forEach(u => {
+                if (u.id) userMap.set(String(u.id), u.prodi);
+                if (u.username) userMap.set(String(u.username).toLowerCase(), u.prodi);
+            });
         }
 
-        // Petakan data prodi: prioritas dari tabel bookings, fallback ke tabel booking_users
+        // 3. Petakan prodi dari bookings (prioritas) atau dari userMap (fallback)
         const mapped = (bookings || []).map(b => {
-            const userProdi = b.booking_users ? b.booking_users.prodi : null;
+            let prodiVal = b.prodi;
+            if (!prodiVal) {
+                // Cari berdasarkan user_id atau username
+                prodiVal = userMap.get(String(b.user_id)) || (b.username ? userMap.get(String(b.username).toLowerCase()) : null);
+            }
             return {
                 ...b,
-                prodi: b.prodi || userProdi || '-'
+                prodi: prodiVal || '-'
             };
         });
 

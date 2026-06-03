@@ -492,7 +492,10 @@ async function renderHistory() {
             const tr = document.createElement('tr');
 
             const tdDate = document.createElement('td');
-            tdDate.textContent = new Date(b.timestamp || b.created_at).toLocaleDateString('id-ID');
+            const dateObj = new Date(b.timestamp || b.created_at);
+            const hours = String(dateObj.getHours()).padStart(2, '0');
+            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+            tdDate.textContent = `${dateObj.toLocaleDateString('id-ID')} ${hours}:${minutes}`;
 
             const tdUser = document.createElement('td');
             tdUser.textContent = b.username || b.user || '-';
