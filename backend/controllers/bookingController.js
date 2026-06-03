@@ -61,13 +61,34 @@ const addBooking = async (req, res) => {
             timestamp: new Date().toISOString(),
         };
 
-        const { data: inserted, error: insertError } = await supabase
+        let inserted;
+        const { data: insertData, error: insertError } = await supabase
             .from(TABLE)
             .insert(bookingData)
             .select('id')
             .single();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+            // Jika insert gagal karena kolom prodi tidak ada di database bookings, hapus prodi dan coba lagi
+            if (insertError.code === '42703' && bookingData.hasOwnProperty('prodi')) {
+                console.warn('[addBooking] Kolom prodi tidak ditemukan di tabel bookings, mencoba kembali tanpa prodi.');
+                const bookingDataWithoutProdi = { ...bookingData };
+                delete bookingDataWithoutProdi.prodi;
+                
+                const { data: retryData, error: retryError } = await supabase
+                    .from(TABLE)
+                    .insert(bookingDataWithoutProdi)
+                    .select('id')
+                    .single();
+                
+                if (retryError) throw retryError;
+                inserted = retryData;
+            } else {
+                throw insertError;
+            }
+        } else {
+            inserted = insertData;
+        }
 
         res.status(201).json({ message: 'Pengajuan peminjaman berhasil dikirim.', id: inserted.id });
     } catch (err) {
@@ -79,14 +100,38 @@ const addBooking = async (req, res) => {
 // ─── GET /api/bookings (admin — semua booking) ────────────────────────────────
 const getAllBookings = async (req, res) => {
     try {
+        // Ambil bookings dan join ke booking_users untuk mendapatkan prodi user ter-update secara dinamis
         const { data: bookings, error } = await supabase
             .from(TABLE)
-            .select('*')
+            .select(`
+                *,
+                booking_users (
+                    prodi
+                )
+            `)
             .order('timestamp', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            // Fallback jika query join/relation bermasalah atau RLS aktif di booking_users
+            const { data: fallbackBookings, error: fallbackError } = await supabase
+                .from(TABLE)
+                .select('*')
+                .order('timestamp', { ascending: false });
 
-        res.json(bookings || []);
+            if (fallbackError) throw fallbackError;
+            return res.json(fallbackBookings || []);
+        }
+
+        // Petakan data prodi: prioritas dari tabel bookings, fallback ke tabel booking_users
+        const mapped = (bookings || []).map(b => {
+            const userProdi = b.booking_users ? b.booking_users.prodi : null;
+            return {
+                ...b,
+                prodi: b.prodi || userProdi || '-'
+            };
+        });
+
+        res.json(mapped);
     } catch (err) {
         console.error('[getAllBookings]', err);
         res.status(500).json({ message: 'Terjadi kesalahan pada server.' });

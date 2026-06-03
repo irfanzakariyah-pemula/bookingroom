@@ -505,6 +505,9 @@ async function renderHistory() {
             tdRoom.className = 'fw-bold';
             tdRoom.textContent = b.roomName || b.room_name || '-';
 
+            const tdDosenPJ = document.createElement('td');
+            tdDosenPJ.textContent = b.dosen_pj || '-';
+
             const tdSchedule = document.createElement('td');
             tdSchedule.textContent = `${b.date} (${b.duration || '-'} Jam)`;
 
@@ -526,13 +529,14 @@ async function renderHistory() {
             tr.appendChild(tdUser);
             tr.appendChild(tdProdi);
             tr.appendChild(tdRoom);
+            tr.appendChild(tdDosenPJ);
             tr.appendChild(tdSchedule);
             tr.appendChild(tdStatus);
             tbody.appendChild(tr);
         });
     } catch (err) {
         console.error('Gagal memuat riwayat admin:', err);
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Gagal memuat riwayat.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Gagal memuat riwayat.</td></tr>';
     }
 }
 
