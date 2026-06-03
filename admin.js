@@ -570,6 +570,7 @@ async function renderUsers() {
         }
 
         allUsers = await res.json();
+        console.log('[DEBUG USER LIST] Users loaded from backend:', allUsers);
         filterAndRenderUsers();
     } catch (err) {
         console.error('Gagal memuat user:', err);
@@ -583,14 +584,24 @@ function filterAndRenderUsers() {
     const tableEl = document.getElementById('userTable');
     const searchVal = document.getElementById('userSearchInput').value.toLowerCase().trim();
 
+    console.log('[DEBUG USER LIST] Filtering with query:', searchVal);
+
     const filtered = allUsers.filter(u => {
         const nama = (u.nama || '').toLowerCase();
+        const username = (u.username || '').toLowerCase();
         const nim = (u.nim || '').toLowerCase();
         const email = (u.email || '').toLowerCase();
         const prodi = (u.prodi || '').toLowerCase();
         const role = (u.role || '').toLowerCase();
-        return nama.includes(searchVal) || nim.includes(searchVal) || email.includes(searchVal) || prodi.includes(searchVal) || role.includes(searchVal);
+        return nama.includes(searchVal) || 
+               username.includes(searchVal) || 
+               nim.includes(searchVal) || 
+               email.includes(searchVal) || 
+               prodi.includes(searchVal) || 
+               role.includes(searchVal);
     });
+
+    console.log('[DEBUG USER LIST] Filtered results:', filtered);
 
     tbody.innerHTML = '';
 
