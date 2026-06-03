@@ -220,13 +220,7 @@
                                     <label class="form-label small">Password</label>
                                     <input type="password" id="regPassword" class="form-control" placeholder="Min. 6 karakter" required minlength="6" title="Password harus minimal 6 karakter.">
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label small">Role</label>
-                                    <select id="regRole" class="form-select">
-                                        <option value="user">User (Peminjam)</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
-                                </div>
+                                <input type="hidden" id="regRole" value="user">
                                 <button type="submit" class="btn btn-primary-custom w-100 rounded-pill" id="registerBtn">Buat Akun</button>
                             </form>
                         </div>
@@ -341,13 +335,7 @@
                                 </optgroup>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Role</label>
-                            <select id="editUserRole" class="form-select">
-                                <option value="user">User (Peminjam)</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                        </div>
+                        <input type="hidden" id="editUserRole">
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Password Baru <span class="text-muted fw-normal">(kosongkan jika tidak diubah)</span></label>
                             <input type="password" id="editUserPassword" class="form-control" placeholder="Min. 6 karakter">
