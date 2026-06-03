@@ -5,7 +5,8 @@ const API_URL = window.location.hostname === 'localhost' || window.location.host
     ? 'http://localhost:5000/api'
     : 'https://bookingroom-r3nz.onrender.com/api';
 
-checkAuth('admin');
+const currentUser = checkAuth('admin');
+let allUsers = [];
 
 // ─── Helper: Escape HTML untuk mencegah XSS ───────────────────────────────────
 function escapeHTML(str) {
@@ -31,12 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
     renderKonfirmasi();
     renderHistory();
     renderStats();
+    renderUsers();
 
     document.getElementById('roomForm').addEventListener('submit', handleRoomSubmit);
     document.getElementById('cancelEditRoom').addEventListener('click', cancelEditForm);
     document.getElementById('roomPhoto').addEventListener('change', previewPhoto);
     document.getElementById('registerForm').addEventListener('submit', handleRegisterSubmit);
     document.getElementById('confirmRejectBtn').addEventListener('click', handleConfirmReject);
+
+    // User Management Listeners
+    document.getElementById('userSearchInput').addEventListener('input', filterAndRenderUsers);
+    document.getElementById('refreshUserListBtn').addEventListener('click', renderUsers);
+    document.getElementById('saveEditUserBtn').addEventListener('click', handleSaveEditUser);
 });
 
 // ================= STATISTIK DASHBOARD =================
@@ -284,6 +291,7 @@ async function handleRegisterSubmit(e) {
         alertBox.className = 'alert alert-success mb-3';
         alertBox.textContent = `✅ Akun "${userData.nim}" berhasil dibuat! Login menggunakan NIM/NIP tersebut.`;
         document.getElementById('registerForm').reset();
+        await renderUsers();
     } else {
         // Tangani kasus token expired (Unauthorized) secara khusus
         const msg = result.message;
@@ -536,4 +544,239 @@ function getStatusLabel(status) {
         rejected: 'Ditolak',
     };
     return map[status] || status;
+}
+
+// ================= KELOLA USER =================
+async function renderUsers() {
+    const tbody = document.getElementById('userTableBody');
+    const emptyEl = document.getElementById('userTableEmpty');
+    const tableEl = document.getElementById('userTable');
+
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Memuat data user...</td></tr>';
+
+    try {
+        const res = await fetch(`${API_URL}/users`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!res.ok) {
+            // Tangani Unauthorized secara khusus
+            if (res.status === 401 || res.status === 403) {
+                alert('Sesi Anda telah berakhir. Silakan login kembali.');
+                logout();
+                return;
+            }
+            throw new Error('Gagal mengambil data user.');
+        }
+
+        allUsers = await res.json();
+        filterAndRenderUsers();
+    } catch (err) {
+        console.error('Gagal memuat user:', err);
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Gagal memuat data user.</td></tr>';
+    }
+}
+
+function filterAndRenderUsers() {
+    const tbody = document.getElementById('userTableBody');
+    const emptyEl = document.getElementById('userTableEmpty');
+    const tableEl = document.getElementById('userTable');
+    const searchVal = document.getElementById('userSearchInput').value.toLowerCase().trim();
+
+    const filtered = allUsers.filter(u => {
+        const nama = (u.nama || '').toLowerCase();
+        const nim = (u.nim || '').toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const prodi = (u.prodi || '').toLowerCase();
+        const role = (u.role || '').toLowerCase();
+        return nama.includes(searchVal) || nim.includes(searchVal) || email.includes(searchVal) || prodi.includes(searchVal) || role.includes(searchVal);
+    });
+
+    tbody.innerHTML = '';
+
+    if (filtered.length === 0) {
+        tableEl.classList.add('d-none');
+        emptyEl.classList.remove('d-none');
+        return;
+    }
+
+    tableEl.classList.remove('d-none');
+    emptyEl.classList.add('d-none');
+
+    filtered.forEach(u => {
+        const tr = document.createElement('tr');
+
+        const tdNama = document.createElement('td');
+        tdNama.className = 'fw-bold';
+        tdNama.textContent = u.nama || '-';
+
+        const tdNim = document.createElement('td');
+        tdNim.textContent = u.nim || '-';
+
+        const tdEmail = document.createElement('td');
+        tdEmail.textContent = u.email || '-';
+
+        const tdProdi = document.createElement('td');
+        tdProdi.className = 'small text-muted';
+        tdProdi.textContent = u.prodi || '-';
+
+        const tdRole = document.createElement('td');
+        const roleBadge = document.createElement('span');
+        roleBadge.className = u.role === 'admin' ? 'badge bg-danger' : 'badge bg-info text-dark';
+        roleBadge.textContent = u.role === 'admin' ? 'Admin' : 'User';
+        tdRole.appendChild(roleBadge);
+
+        const tdAction = document.createElement('td');
+
+        const btnEdit = document.createElement('button');
+        btnEdit.className = 'btn btn-sm btn-outline-primary rounded-pill me-1';
+        btnEdit.textContent = 'Edit';
+        btnEdit.addEventListener('click', () => openEditUserModal(u));
+
+        const btnDel = document.createElement('button');
+        btnDel.className = 'btn btn-sm btn-outline-danger rounded-pill';
+        btnDel.textContent = 'Hapus';
+        
+        // Sembunyikan atau nonaktifkan hapus untuk diri sendiri
+        if (currentUser && String(currentUser.uid) === String(u.id)) {
+            btnDel.disabled = true;
+            btnDel.className = 'btn btn-sm btn-outline-secondary rounded-pill';
+            btnDel.title = 'Tidak bisa menghapus akun sendiri';
+        }
+        
+        btnDel.addEventListener('click', () => removeUser(u.id, u.nama));
+
+        tdAction.appendChild(btnEdit);
+        tdAction.appendChild(btnDel);
+
+        tr.appendChild(tdNama);
+        tr.appendChild(tdNim);
+        tr.appendChild(tdEmail);
+        tr.appendChild(tdProdi);
+        tr.appendChild(tdRole);
+        tr.appendChild(tdAction);
+
+        tbody.appendChild(tr);
+    });
+}
+
+function openEditUserModal(user) {
+    document.getElementById('editUserId').value = user.id;
+    document.getElementById('editUserNama').value = user.nama || '';
+    document.getElementById('editUserEmail').value = user.email || '';
+    document.getElementById('editUserNim').value = user.nim || '';
+    document.getElementById('editUserProdi').value = user.prodi || 'S1 Teknik Informatika';
+    document.getElementById('editUserRole').value = user.role || 'user';
+    document.getElementById('editUserPassword').value = '';
+
+    const alertBox = document.getElementById('editUserAlert');
+    alertBox.className = 'd-none';
+    alertBox.textContent = '';
+
+    // Cari instance bootstrap modal
+    const modalEl = document.getElementById('editUserModal');
+    let modal = bootstrap.Modal.getInstance(modalEl);
+    if (!modal) {
+        modal = new bootstrap.Modal(modalEl);
+    }
+    modal.show();
+}
+
+async function handleSaveEditUser() {
+    const id = document.getElementById('editUserId').value;
+    const nama = document.getElementById('editUserNama').value.trim();
+    const email = document.getElementById('editUserEmail').value.trim();
+    const nim = document.getElementById('editUserNim').value.trim();
+    const prodi = document.getElementById('editUserProdi').value;
+    const role = document.getElementById('editUserRole').value;
+    const password = document.getElementById('editUserPassword').value;
+
+    const alertBox = document.getElementById('editUserAlert');
+    const saveBtn = document.getElementById('saveEditUserBtn');
+
+    if (!nama || !email || !nim) {
+        alertBox.className = 'alert alert-danger mt-3';
+        alertBox.textContent = '❌ Nama, Email, dan NIM/NIP wajib diisi!';
+        return;
+    }
+
+    const updateData = { nama, email, nim, username: nim, prodi, role };
+    if (password) {
+        if (password.length < 6) {
+            alertBox.className = 'alert alert-danger mt-3';
+            alertBox.textContent = '❌ Password minimal 6 karakter!';
+            return;
+        }
+        updateData.password = password;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Menyimpan...';
+
+    try {
+        const res = await fetch(`${API_URL}/users/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(updateData)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            alertBox.className = 'alert alert-danger mt-3';
+            alertBox.textContent = `❌ Gagal: ${data.message}`;
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Simpan Perubahan';
+            return;
+        }
+
+        alertBox.className = 'alert alert-success mt-3';
+        alertBox.textContent = '✅ Data user berhasil diperbarui!';
+
+        // Refresh list
+        await renderUsers();
+
+        // Close modal after 1.5 seconds
+        setTimeout(() => {
+            const modalEl = document.getElementById('editUserModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }, 1500);
+
+    } catch (err) {
+        console.error('Gagal update user:', err);
+        alertBox.className = 'alert alert-danger mt-3';
+        alertBox.textContent = '❌ Gagal memperbarui data user. Pastikan server berjalan.';
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Simpan Perubahan';
+    }
+}
+
+async function removeUser(id, nama) {
+    if (currentUser && String(currentUser.uid) === String(id)) {
+        alert('Anda tidak dapat menghapus akun Anda sendiri dari panel ini.');
+        return;
+    }
+
+    if (confirm(`Apakah Anda yakin ingin menghapus user "${nama}"?`)) {
+        try {
+            const res = await fetch(`${API_URL}/users/${id}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                alert(`Gagal menghapus user: ${data.message}`);
+                return;
+            }
+
+            alert(data.message);
+            await renderUsers();
+        } catch (err) {
+            console.error('Gagal menghapus user:', err);
+            alert('Gagal menghapus user. Coba lagi.');
+        }
+    }
 }
